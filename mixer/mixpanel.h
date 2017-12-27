@@ -6,9 +6,12 @@
 #include <QAudioFormat>
 #include <QAudioBuffer>
 #include <QAudioDecoder>
-
 #include "math.h"
-
+#include <QMainWindow>
+#include <QFileDialog>
+#include <QThread>
+#include <QTimer>
+#include "qcustomplot.h"
 class MixPanel : public QObject
 {
     Q_OBJECT
@@ -23,6 +26,14 @@ public:
     explicit MixPanel(QObject *parent = nullptr);
     ~MixPanel();
 
+    bool plot;
+    bool isPlayed;
+    bool audioReady;
+    qint64 duration;
+    qint64 actPos;
+    QByteArray *channel1;
+    QByteArray *channel2;
+
     double processEQ(double sample, memEQ &eq);
     double processLow(double sample);
     double processMedium(double sample);
@@ -32,23 +43,19 @@ public:
 
     void shelfFilter(double F0, double g, QString type, memEQ &eq);
 
+
 private:
     QAudioDecoder *decoder;
 
-    QByteArray *channel1;
-    QByteArray *channel2;
+
 
     memEQ lowMemEq;
     memEQ medMemEq;
     memEQ medMemEq2;
     memEQ highMemEq;
 
-    bool audioReady;
-    bool isWhiteNoise;
-    bool isPlayed;
 
-    qint64 duration;
-    qint64 actPos;
+    bool isWhiteNoise;
 
 signals:
     void timeChange(QString time);
@@ -66,6 +73,10 @@ public slots:
     void lowEQ(int value);
     void medEQ(int value);
     void highEQ(int value);
+
+
+
+
 };
 
 #endif // MIXPANEL_H

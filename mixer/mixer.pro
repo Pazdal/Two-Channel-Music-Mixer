@@ -5,9 +5,10 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += core
 QT       += multimedia
 QT       += charts
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = mixer
 TEMPLATE = app
@@ -28,12 +29,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         soundprocessing.cpp \
-        mixpanel.cpp
+        mixpanel.cpp \
+    qcustomplot.cpp
 
 HEADERS += \
         mainwindow.h \
         soundprocessing.h \
-        mixpanel.h
+        mixpanel.h \
+    qcustomplot.h
 
 FORMS += \
         mainwindow.ui

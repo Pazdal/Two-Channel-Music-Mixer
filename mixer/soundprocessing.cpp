@@ -26,14 +26,16 @@ void SoundProcessing::play() {
     if(abort) timer->stop();
     if(!timer->isActive()) return;
 
-    double buffer1[128], buffer2[128];
+    //double buffer1[128], buffer2[128];
 
     QByteArray output;
 
-    panel1.process(buffer1, 64);
-    panel2.process(buffer2, 64);
+    panel1.process(buffer1, 128);
+    panel2.process(buffer2, 128);
 
-    for(int i = 0; i < 128; i++) {
+
+
+    for(int i = 0; i < 256; i++) {
         rate += 0.0000001;
         if(rate > 1) rate = 1;
 

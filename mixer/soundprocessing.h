@@ -26,6 +26,8 @@ public:
     MixPanel panel1;
     MixPanel panel2;
 
+    double buffer1[256], buffer2[256];
+
 private:
     QAudioOutput *audioOutput;
     QIODevice *audioDevice;

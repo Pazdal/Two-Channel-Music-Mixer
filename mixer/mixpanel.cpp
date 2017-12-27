@@ -1,4 +1,5 @@
 #include "mixpanel.h"
+#include "mainwindow.h"
 
 MixPanel::MixPanel(QObject *parent) : QObject(parent)
 {
@@ -8,6 +9,7 @@ MixPanel::MixPanel(QObject *parent) : QObject(parent)
     isWhiteNoise = false;
     audioReady = false;
     isPlayed = false;
+    plot = false;
 
     channel1 = new QByteArray();
     channel2 = new QByteArray();
@@ -33,11 +35,16 @@ MixPanel::MixPanel(QObject *parent) : QObject(parent)
     lowEQ(50);
     medEQ(50);
     highEQ(50);
+
+
 }
 
 void MixPanel::playPause() {
     if(audioReady)
+    {
         isPlayed = !isPlayed;
+
+    }
 }
 
 void MixPanel::process(double *buffer, int nFrames) {
@@ -56,7 +63,7 @@ void MixPanel::process(double *buffer, int nFrames) {
         }
 
         qint16 value = *(reinterpret_cast<qint16*>(channel1->data())+actPos);
-
+        //qDebug() << value ;
         double y = processLow(value);
         y = processMedium(y);
         buffer[i*2] = processHigh(y);
@@ -66,6 +73,7 @@ void MixPanel::process(double *buffer, int nFrames) {
         y = processLow(value);
         y = processMedium(y);
         buffer[i*2+1] = processHigh(y);
+
 
         actPos++;
     }
@@ -200,6 +208,7 @@ void MixPanel::readBuffer() {
 
 void MixPanel::finishDecoding() {
     qDebug() << "ready";
+    plot = false;
     audioReady = true;
 
     int minutes = duration/1000000./60.;
@@ -228,4 +237,9 @@ MixPanel::~MixPanel() {
     delete channel1;
     delete channel2;
 }
+
+
+
+
+
 
