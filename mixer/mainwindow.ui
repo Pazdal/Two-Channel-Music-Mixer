@@ -433,6 +433,19 @@
      </rect>
     </property>
    </widget>
+   <widget class="QCustomPlot" name="customPlot_2" native="true">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>290</y>
+      <width>261</width>
+      <height>91</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -443,16 +456,41 @@
      <height>22</height>
     </rect>
    </property>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_Open"/>
+    <addaction name="action_Open2"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_Open">
+   <property name="icon">
+    <iconset theme="open.png">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Load Track 1</string>
+   </property>
+  </action>
+  <action name="action_Open2">
+   <property name="icon">
+    <iconset theme="open.png">
+     <normaloff>.</normaloff>.</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Load Track 2</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

@@ -26,8 +26,6 @@ void SoundProcessing::play() {
     if(abort) timer->stop();
     if(!timer->isActive()) return;
 
-    //double buffer1[128], buffer2[128];
-
     QByteArray output;
 
     panel1.process(buffer1, 128);

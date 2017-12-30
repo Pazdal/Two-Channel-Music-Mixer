@@ -21,10 +21,16 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0); 
     QTimer dataTimer;
+    QTimer dataTimer2;
+
+
 
     void setupSoundGraph(QCustomPlot *customPlot);
+    void setupSoundGraph2(QCustomPlot *customPlot);
     QCPBars *bars1;
     QVector<double> x1,y2;
+    QCPBars *bars2;
+    QVector<double> x2,y1;
     ~MainWindow();
 
 protected:
@@ -43,6 +49,8 @@ public slots:
     //----PLOTING------------
      void bracketDataSlot();
      void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
+     void bracketDataSlot2();
+     void graphClicked2(QCPAbstractPlottable *plottable, int dataIndex);
     //--------------------
     void selectAudio();
     void selectAudio2();
