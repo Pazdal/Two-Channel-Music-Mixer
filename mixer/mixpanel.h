@@ -12,9 +12,11 @@
 #include <QThread>
 #include <QTimer>
 #include "qcustomplot.h"
+#include "action.h"
 class MixPanel : public QObject
 {
     Q_OBJECT
+    //Q_ENUMS(Actions)
 
 private:
     struct memEQ {
@@ -29,10 +31,17 @@ public:
     bool plot;
     bool isPlayed;
     bool audioReady;
+    bool isWhiteNoise;
+
     qint64 duration;
     qint64 actPos;
     QByteArray *channel1;
     QByteArray *channel2;
+
+    memEQ lowMemEq;
+    memEQ medMemEq;
+    memEQ medMemEq2;
+    memEQ highMemEq;
 
     double processEQ(double sample, memEQ &eq);
     double processLow(double sample);
@@ -47,18 +56,9 @@ public:
 private:
     QAudioDecoder *decoder;
 
-
-
-    memEQ lowMemEq;
-    memEQ medMemEq;
-    memEQ medMemEq2;
-    memEQ highMemEq;
-
-
-    bool isWhiteNoise;
-
 signals:
     void timeChange(QString time);
+    void writeToFile(quint64 type, quint64 position, quint64 value);
 
 public slots:
     void playPause();
@@ -73,8 +73,6 @@ public slots:
     void lowEQ(int value);
     void medEQ(int value);
     void highEQ(int value);
-
-
 
 
 };

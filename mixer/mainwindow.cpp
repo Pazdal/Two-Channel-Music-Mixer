@@ -34,6 +34,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->sMedium, SIGNAL(sliderMoved(int)), &soundProc->panel1, SLOT(medEQ(int)));
     connect(ui->sHigh, SIGNAL(sliderMoved(int)), &soundProc->panel1, SLOT(highEQ(int)));
 
+    //AKCJE
+    //sygnaly do zmiany suwakow
+    connect(soundProc, SIGNAL(lowEQChange(int)), this, SLOT(lowChange(int)));
+    connect(soundProc, SIGNAL(medEQChange(int)), this, SLOT(medChange(int)));
+    connect(soundProc, SIGNAL(highEQChange(int)), this, SLOT(highChange(int)));
+    connect(soundProc, SIGNAL(crossChange(int)), this, SLOT(crossChanger(int)));
+
     connect(&soundProc->panel1, SIGNAL(timeChange(QString)), ui->lTime, SLOT(setText(QString)));
 
     connect(ui->pbAddMusic_2, SIGNAL(clicked(bool)), this, SLOT(selectAudio2()));
@@ -54,6 +61,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->customPlot, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*,int)));
     connect(ui->customPlot_2, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked2(QCPAbstractPlottable*,int)));
+
+    //AKCJE
+    //sygnaly do zapisywania i wczytywania akcji
+    connect(ui->pbActionSave, SIGNAL(clicked(bool)), this, SLOT(saveAction()));
+    connect(this, SIGNAL(saveActionToFile(QString)), &soundProc->action, SLOT(saveActionToFile(QString)));
+
+    connect(ui->pbActionLoad, SIGNAL(clicked(bool)), this, SLOT(loadAction()));
+    connect(this, SIGNAL(loadActionFromFile(QString)), &soundProc->action, SLOT(loadActionFromFile(QString)));
+
+    connect(&soundProc->panel1, SIGNAL(writeToFile(quint64,quint64,quint64)), &soundProc->action, SLOT(write(quint64, quint64,quint64)));
 }
 //------------------------------------------------------------
 void MainWindow::setupSoundGraph(QCustomPlot *customPlot)
@@ -304,6 +321,52 @@ void MainWindow::selectAudio2() {
 //------------------------------------------------------------
 void MainWindow::crossFaderChange(int value) {
     soundProc->crossFader = value;
+    emit soundProc->panel1.writeToFile(6, soundProc->panel1.actPos,value);
+}
+
+void MainWindow::saveAction()
+{
+     QString fileName = QFileDialog::getSaveFileName(this,
+         tr("Save action"), "/home", tr("save(*.acn)"));
+
+     if(fileName == "") return;
+
+     emit saveActionToFile(fileName);
+
+}
+
+void MainWindow::loadAction()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Open action"), "/home", tr("Action Files (*.acn)"));
+
+    if(fileName == "") return;
+
+    emit loadActionFromFile(fileName);
+}
+
+void MainWindow::lowChange(int value)
+{
+    ui->sLow->setSliderPosition(value);
+    ui->sLow->setValue(value);
+}
+
+void MainWindow::medChange(int value)
+{
+    ui->sMedium->setSliderPosition(value);
+    ui->sMedium->setValue(value);
+}
+
+void MainWindow::highChange(int value)
+{
+    ui->sHigh->setSliderPosition(value);
+    ui->sHigh->setValue(value);
+}
+
+void MainWindow::crossChanger(int value)
+{
+    ui->sCrossfader->setSliderPosition(value);
+    ui->sCrossfader->setValue(value);
 }
 //------------------------------------------------------------
 MainWindow::~MainWindow()

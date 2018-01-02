@@ -30,13 +30,15 @@ SOURCES += \
         mainwindow.cpp \
         soundprocessing.cpp \
         mixpanel.cpp \
-    qcustomplot.cpp
+    qcustomplot.cpp \
+    action.cpp
 
 HEADERS += \
         mainwindow.h \
         soundprocessing.h \
         mixpanel.h \
-    qcustomplot.h
+    qcustomplot.h \
+    action.h
 
 FORMS += \
         mainwindow.ui

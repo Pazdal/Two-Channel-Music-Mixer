@@ -54,6 +54,7 @@ void MixPanel::process(double *buffer, int nFrames) {
         return;
     }
 
+
     for(int i = 0; i < nFrames; i++) {
 
         if(actPos >= channel1->size()/sizeof(qint16)) {
@@ -63,7 +64,6 @@ void MixPanel::process(double *buffer, int nFrames) {
         }
 
         qint16 value = *(reinterpret_cast<qint16*>(channel1->data())+actPos);
-        //qDebug() << value ;
         double y = processLow(value);
         y = processMedium(y);
         buffer[i*2] = processHigh(y);
@@ -167,16 +167,19 @@ void MixPanel::shelfFilter(double F0, double g, QString type, memEQ &eq) {
 
 void MixPanel::lowEQ(int value) {
     shelfFilter(500, (value-50)/50.*10, "low", lowMemEq);
+    emit writeToFile(3, actPos,value);  //emisja sygnalu do zapisania akcji
 }
 
 void MixPanel::medEQ(int value) {
     double g = (value-50)/50.*10;
     shelfFilter(15000, g, "low", medMemEq);
     shelfFilter(500, -g, "low", medMemEq2);
+    emit writeToFile(4, actPos,value);
 }
 
 void MixPanel::highEQ(int value) {
     shelfFilter(15000, (value-50)/50.*10, "high", highMemEq);
+    emit writeToFile(5, actPos,value);
 }
 
 void MixPanel::loadAudio(QString filename) {
@@ -221,14 +224,17 @@ void MixPanel::finishDecoding() {
     QString time  = "0:00/" + QString::number(minutes) + ":" + QString::number(seconds);
 
     emit timeChange(time);
+
 }
 
 void MixPanel::enableWhiteNoise() {
     isWhiteNoise = true;
+     emit writeToFile(1, actPos,0);
 }
 
 void MixPanel::disableWhiteNoise() {
     isWhiteNoise = false;
+    emit writeToFile(2, actPos,0);
 }
 
 MixPanel::~MixPanel() {
