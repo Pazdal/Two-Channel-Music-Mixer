@@ -1,0 +1,142 @@
+@startuml
+
+class MainWindow
+
+MainWindow *-- Soundprocessing
+
+class Mixpanel
+
+Soundprocessing *-- Mixpanel : have 2 >
+
+class Action
+
+Soundprocessing o-- Action
+
+class Soundprocessing
+
+
+class MainWindow{
+    + explicit MainWindow(QWidget *parent = 0)
+    + QTimer dataTimer
+    + QTimer dataTimer2
+
+    + void setupSoundGraph(QCustomPlot *customPlot)
+    +void setupSoundGraph2(QCustomPlot *customPlot)
+    +QCPBars *bars1
+    +QCPBars *bars2
+    +QVector<double> x1,y2
+    +QVector<double> x2,y1
+    +~MainWindow()
+    #void closeEvent(QCloseEvent *event) override
+    -Ui::MainWindow *ui
+    -SoundProcessing* soundProc
+    -QThread th_soundProc
+    +void loadAudio(QString filename)
+    +void loadAudio2(QString filename)
+    +void saveActionToFile(QString fileName)
+    +void loadActionFromFile(QString fileName)
+    +void bracketDataSlot()
+    +void graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
+    +void bracketDataSlot2()
+    +void graphClicked2(QCPAbstractPlottable *plottable, int dataIndex)
+    +void selectAudio()
+    +void selectAudio2()
+    +void crossFaderChange(int value)
+    +void saveAction()
+    +void loadAction()
+    +void lowChange(int value)
+    +void medChange(int value)
+    +void highChange(int value)
+    +void crossChanger(int value)
+    +void onDownload()
+}
+
+class Soundprocessing{
+     +explicit SoundProcessing(QObject *parent = nullptr)
+     +bool abort
+     +int crossFader
+     +MixPanel panel1
+     +MixPanel panel2
+     +Action action
+     +enum Actions
+     +double buffer1[256]
+     +double buffer2[256]
+     +QByteArray output1
+     +QAudioFormat format
+     +void writeWavHeader( QFile * file )
+
+     -QAudioOutput *audioOutput
+     -QIODevice *audioDevice
+     -QTimer* timer
+     -double rate
+
+     +void lowEQChange(int value)
+     +void medEQChange(int value)
+     +void highEQChange(int value)
+     +void crossChange(int value)
+     +void play()
+
+     +void startDownload(QString filename)
+     +void download(QString filename);
+
+}
+
+class Mixpanel{
+    -struct memEQ
+    +explicit MixPanel(QObject *parent = nullptr)
+    +~MixPanel()
+    +bool plot
+    +bool isPlayed
+    +bool audioReady
+    +bool isWhiteNoise
+    +qint64 duration
+    +qint64 actPos
+    +QByteArray *channel1
+    +QByteArray *channel2
+    +memEQ lowMemEq
+    +memEQ medMemEq
+    +memEQ medMemEq2
+    +memEQ highMemEq
+
+    +double processEQ(double sample, memEQ &eq)
+    +double processLow(double sample)
+    +double processMedium(double sample)
+    +double processHigh(double sample)
+    +void process(double *buffer, int nFrames)
+    +void shelfFilter(double F0, double g, QString type, memEQ &eq)
+    -QAudioDecoder *decoder
+
+    +void timeChange(QString time)
+    +void writeToFile(quint64 type, quint64 position, quint64 value)
+    +void playPause()
+    +void loadAudio(QString filename)
+    +void readBuffer()
+    +void finishDecoding()
+    +void enableWhiteNoise()
+    +void disableWhiteNoise()
+    +void lowEQ(int value)
+    +void medEQ(int value)
+    +void highEQ(int value)
+}
+
+class Action{
+     +explicit Action(QObject *parent = nullptr)
+     +QVector<quint64> buffer
+     +QVector<quint64> loadBuffer
+     +void saveActionToFile(QString fileName)
+     +void write(quint64 type, quint64 positon, quint64 value)
+     +void loadActionFromFile(QString fileName)
+
+}
+
+
+enum Actions {
+  white_noise_true
+  white_noise_false
+  low
+  med
+  high
+  cross
+}
+
+@enduml
