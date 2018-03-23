@@ -3,6 +3,7 @@
 
 #include "soundprocessing.h"
 
+//used to export recording to file
 class Exporting : public QObject
 {
     Q_OBJECT
@@ -11,8 +12,9 @@ private:
 
 public:
      explicit Exporting(SoundProcessing* soundprocessing, QObject *parent = nullptr);
-
+     //prepare wave header
      void writeWavHeader( QFile * file );
+     //fill missing data, file size etc.
      void closeWavHeader( QFile * file );
 
 signals:
