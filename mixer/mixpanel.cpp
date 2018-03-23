@@ -3,6 +3,7 @@
 
 MixPanel::MixPanel(QObject *parent) : QObject(parent)
 {
+    //var description in header
     actPos = 0;
     realPosition = 0;
     duration = 0;
@@ -53,6 +54,7 @@ MixPanel::MixPanel(QObject *parent) : QObject(parent)
     medEQ(50);
     highEQ(50);
 
+    //create shelf filters for EQ
     shelfFilter(500, -8, "low", lowMemEq[0]);
     shelfFilter(500, 8, "low", lowMemEq[1]);
 
@@ -64,13 +66,11 @@ MixPanel::MixPanel(QObject *parent) : QObject(parent)
     shelfFilter(15000, -10, "high", highMemEq[0]);
     shelfFilter(15000, 10, "high", highMemEq[1]);
 }
-
+//---------------------------------------------------
 void MixPanel::playPause() {
-
-
         isPlayed = !isPlayed;
 }
-
+//---------------------------------------------------
 void MixPanel::playLoopingSet() {
 
         if(isLoopingActive)
@@ -87,6 +87,7 @@ void MixPanel::playLoopingSet() {
             }
         }
 }
+//---------------------------------------------------
 void MixPanel::playLoopingStart() {
 
         loopingStart = actPos;
@@ -102,6 +103,7 @@ void MixPanel::playLoopingStart() {
             isLoopingActive = false;
         }
 }
+//---------------------------------------------------
 void MixPanel::playLoopingEnd() {
 
         if(isLoopStartSet && actPos > loopingStart)
@@ -119,7 +121,7 @@ void MixPanel::playLoopingEnd() {
 
 
 }
-
+//---------------------------------------------------
 void MixPanel::getDiscSpeed(float angle) {
 
     float angleDif = angle - prevDiscAngle;
@@ -133,16 +135,16 @@ void MixPanel::getDiscSpeed(float angle) {
 
     prevDiscAngle = angle;
 }
-
+//---------------------------------------------------
 void MixPanel::enableDisc() {
     isDisc = true;
     discSamples = 0;
 }
-
+//---------------------------------------------------
 void MixPanel::disableDisc() {
     isDisc = false;
 }
-
+//---------------------------------------------------
 void MixPanel::setFlag(int flag) {
 
     if(!flags[flag])
@@ -156,43 +158,43 @@ void MixPanel::setFlag(int flag) {
         realPosition = actPos;
     }
 }
-
+//---------------------------------------------------
 void MixPanel::unsetFlag(int flag) {
     flags[flag] = false;
 }
-
+//---------------------------------------------------
 void MixPanel::setFlag1() {
     setFlag(0);
 }
-
+//---------------------------------------------------
 void MixPanel::setFlag2() {
     setFlag(1);
 }
-
+//---------------------------------------------------
 void MixPanel::setFlag3() {
     setFlag(2);
 }
-
+//---------------------------------------------------
 void MixPanel::setFlag4() {
     setFlag(3);
 }
-
+//---------------------------------------------------
 void MixPanel::unsetFlag1() {
     unsetFlag(0);
 }
-
+//---------------------------------------------------
 void MixPanel::unsetFlag2() {
     unsetFlag(1);
 }
-
+//---------------------------------------------------
 void MixPanel::unsetFlag3() {
     unsetFlag(2);
 }
-
+//---------------------------------------------------
 void MixPanel::unsetFlag4() {
     unsetFlag(3);
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop(int loop) {
     if(loopInterval == 0)
         return;
@@ -204,36 +206,36 @@ void MixPanel::setLoop(int loop) {
         actLoop = loop;
     else actLoop = 0;
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop1_16() {
     setLoop(1);
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop1_8() {
     setLoop(2);
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop1_4() {
     setLoop(3);
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop1_2() {
     setLoop(4);
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop1() {
     setLoop(5);
 }
-
+//---------------------------------------------------
 void MixPanel::setLoop2() {
     setLoop(6);
 }
-
+//---------------------------------------------------
 void MixPanel::playLoop() {
 
     isSingleLoop = !isSingleLoop;
 }
-
+//---------------------------------------------------
 void MixPanel::playStop() {
 
     isPlayed = false;
@@ -248,14 +250,16 @@ void MixPanel::playStop() {
     emit timeChange(time);
 
 }
-
+//---------------------------------------------------
 void MixPanel::process(double *buffer, int nFrames) {
 
+    //if pause return zeros
     if( !isPlayed) {
         memset(buffer, 0, sizeof(double)*nFrames*2);
         return;
     }
 
+    //if disc is used calculate its speed
     if(isDisc)
         discSpeed = discSamples/5000.;
     else if(discSpeed > speed)
@@ -263,8 +267,10 @@ void MixPanel::process(double *buffer, int nFrames) {
     else if(discSpeed < speed)
         discSpeed += (speed-discSpeed)/10.;
 
+    //for every frame add effects
     for(int i = 0; i < nFrames; i++) {
 
+        //if audio finished return zeros
         lock.lockForRead();
         if(actPos >= channel1->size()/sizeof(qint16)) {
             buffer[i*2] = 0;
@@ -273,13 +279,16 @@ void MixPanel::process(double *buffer, int nFrames) {
             continue;
         }
 
+        //get samples with proper volume set
         qint16 value = *(reinterpret_cast<qint16*>(channel1->data())+actPos)*volume;
         qint16 value2 = *(reinterpret_cast<qint16*>(channel2->data())+actPos)*volume;
         lock.unlock();
 
+        //filter samples with EQ
         double y;
         double y2;
 
+        //more eq slider is moved up/down the more filtered sound is important
         if(lowValue>=0) {
             y = processLowUp(value)*lowValue*10+value*(1-lowValue);
             y2 = processLowUp(value2)*lowValue*10+value2*(1-lowValue);
@@ -307,11 +316,13 @@ void MixPanel::process(double *buffer, int nFrames) {
             y2 += processHighDown(value2)*(-highValue)*10+value2*(1+highValue);
         }
 
+        //calculate mean
         float dividor = abs(lowValue)*9+1+abs(medValue)*9+1+abs(highValue)*9+1;
 
         buffer[i*2] = y/dividor;
         buffer[i*2+1] = y2/dividor;
 
+        //calculate speed modified by disc or tempo
         if(isDisc || abs(discSpeed - speed) > 1e-5)
             realPosition += discSpeed;
         else
@@ -320,9 +331,11 @@ void MixPanel::process(double *buffer, int nFrames) {
 
     }
 
+    //recalculate how much samples will be played with disc
     if(isDisc)
         discSamples -= discSpeed*nFrames;
 
+        //if looping is active and we are behind return to its start
         if(isLoopingActive){
             if((actPos > loopingEnd)){
                 actPos = loopingStart;
@@ -339,6 +352,9 @@ void MixPanel::process(double *buffer, int nFrames) {
     lock.lockForRead();
     int size = channel1->size()/sizeof(qint16);
     lock.unlock();
+
+    //if audio finished pause
+    //except repeat or loop enabled
     if(actPos >= size) {
         actPos = 0;
         realPosition = 0;
@@ -347,6 +363,7 @@ void MixPanel::process(double *buffer, int nFrames) {
             emit pause();
     }
 
+    //set time label
     int seconds = actPos/48000.;
     int minutes = seconds/60.;
     seconds -= minutes*60;
@@ -368,7 +385,7 @@ void MixPanel::process(double *buffer, int nFrames) {
 
     emit timeChange(time);
 }
-
+//---------------------------------------------------
 double MixPanel::processEQ(double sample, memEQ &eq) {
 
     double y = eq.b0*sample + eq.b1*eq.xmem1 + eq.b2*eq.xmem2 - eq.a1*eq.ymem1 - eq.a2*eq.ymem2;
@@ -380,31 +397,31 @@ double MixPanel::processEQ(double sample, memEQ &eq) {
 
     return y;
 }
-
+//---------------------------------------------------
 double MixPanel::processLowUp(double sample) {
     return processEQ(sample, lowMemEq[1]);
 }
-
+//---------------------------------------------------
 double MixPanel::processLowDown(double sample) {
     return processEQ(sample, lowMemEq[0]);
 }
-
+//---------------------------------------------------
 double MixPanel::processMediumUp(double sample) {
     return processEQ(processEQ(sample, medMemEq[1]), medMemEq2[1]);
 }
-
+//---------------------------------------------------
 double MixPanel::processMediumDown(double sample) {
     return processEQ(processEQ(sample, medMemEq[0]), medMemEq2[0]);
 }
-
+//---------------------------------------------------
 double MixPanel::processHighUp(double sample) {
     return processEQ(sample, highMemEq[1]);
 }
-
+//---------------------------------------------------
 double MixPanel::processHighDown(double sample) {
     return processEQ(sample, highMemEq[0]);
 }
-
+//---------------------------------------------------
 void MixPanel::shelfFilter(double F0, double g, QString type, memEQ &eq) {
 
     if(type != "low" && type != "high") {
@@ -434,22 +451,22 @@ void MixPanel::shelfFilter(double F0, double g, QString type, memEQ &eq) {
     eq.a1 /= eq.a0;
     eq.a2 /= eq.a0;
 }
-
+//---------------------------------------------------
 void MixPanel::lowEQ(int value) {
     lowValue = (value-50)/50.;
     emit writeToFile(1, actPos,value);  //emisja sygnalu do zapisania akcji
 }
-
+//---------------------------------------------------
 void MixPanel::medEQ(int value) {
     medValue = (value-50)/50.;
     emit writeToFile(2, actPos,value);
 }
-
+//---------------------------------------------------
 void MixPanel::highEQ(int value) {
     highValue = (value-50)/50.;
     emit writeToFile(3, actPos,value);
 }
-
+//---------------------------------------------------
 void MixPanel::detectBPM() {
 #ifdef __linux__
     soundtouch::BPMDetect bpmDetector(1, 48000);
@@ -466,10 +483,11 @@ void MixPanel::detectBPM() {
 #endif
 
 }
-
+//---------------------------------------------------
 void MixPanel::loadAudio(QString filename) {
     delete decoder;
 
+    //select proper format
     QAudioFormat format;
     format.setChannelCount(2);
     format.setCodec("audio/pcm");
@@ -485,6 +503,7 @@ void MixPanel::loadAudio(QString filename) {
 
     decoder->setSourceFilename(filename);
 
+    //init needed variables and clear buffers
     isPlayed = false;
     audioReady = false;
     isBPM = false;
@@ -512,6 +531,7 @@ void MixPanel::loadAudio(QString filename) {
     channel2->clear();
     lock.unlock();
 
+    //taglib is used to get full length of file before it is loaded
     TagLib::FileRef f(QFile::encodeName(filename).constData());
     audioLength  = f.audioProperties()->lengthInMilliseconds() / 1000.;
     audioLengthInSec = f.audioProperties()->lengthInSeconds();
@@ -520,6 +540,7 @@ void MixPanel::loadAudio(QString filename) {
 
     rewindParam = audioLength*audioLength/rewindConst;
 
+    //set time label
     QString sSeconds = QString::number(0);
     if(sSeconds.size() == 1)
         sSeconds.insert(0, '0');
@@ -538,11 +559,12 @@ void MixPanel::loadAudio(QString filename) {
 
     decoder->start();
 }
-
+//---------------------------------------------------
 void MixPanel::readBuffer() {
     QAudioBuffer buffer = decoder->read();
     const qint16 *data = buffer.constData<qint16>();
 
+    //separate channels
     lock.lockForWrite();
     for(int i = 0; i < buffer.sampleCount()/2; i++) {
         channel1->append(reinterpret_cast<const char*>(data+i*2), sizeof(qint16));
@@ -550,7 +572,10 @@ void MixPanel::readBuffer() {
     }
     lock.unlock();
 
+    //add new samples to total duration
     duration += buffer.duration();
+
+    //try to detect bpm
     lock.lockForRead();
     int size = channel1->size()/sizeof(qint16);
     lock.unlock();
@@ -559,7 +584,7 @@ void MixPanel::readBuffer() {
         isBPM = true;
     }
 }
-
+//---------------------------------------------------
 void MixPanel::finishDecoding() {
 
     if(!isBPM) {
@@ -568,25 +593,21 @@ void MixPanel::finishDecoding() {
 
     emit fileReady();
 }
-
+//---------------------------------------------------
 void MixPanel::speedChange(int value){
     speed = value/50.0;
     emit writeToFile(6, actPos,value);
 }
+//---------------------------------------------------
 void MixPanel::volumeChange(int value){
     volume = value/100.0;
     emit writeToFile(5, actPos,value);
 }
-
+//---------------------------------------------------
 MixPanel::~MixPanel() {
     delete decoder;
 
     delete channel1;
     delete channel2;
 }
-
-
-
-
-
 
