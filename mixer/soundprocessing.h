@@ -13,6 +13,7 @@
 #include <mixpanel.h>
 #include <action.h>
 
+//class to mix audio from panels and output it
 class SoundProcessing : public QObject
 {
     Q_OBJECT
@@ -20,25 +21,46 @@ class SoundProcessing : public QObject
 
 public:
     explicit SoundProcessing(QObject *parent = nullptr); 
+
+    //action id
     enum Actions { low=1, med, high, cross, volume, tempo };
+
+    //panels for mixing audio/add effects
     MixPanel panel1;
     MixPanel panel2;
+
+    //class to save/load actions
     Action action;
+
+    //array for recorded audio
     QByteArray output1;
+
+    //decoded audio format
     QAudioFormat format;
     QTimer* timer;
+
+    //crossFader value
     int crossFader;
 
     void launchActions(quint64 actPos1, quint64 actPos2);
 
 private:
+    //audio output device
     QAudioOutput *audioOutput;
     QIODevice *audioDevice;
+
+    //enable/disable recording of output
     bool isRecording;
+
+    //variable used to adjust volume when amplitude exceed the limit
     double rate;
+
+    //buffers to hold audio samples from both panels to actual processing
     double buffer1[960], buffer2[960];
 
 signals:
+
+    //signals to run proper actions if enabled
     void lowEQChange(int value);
     void medEQChange(int value);
     void highEQChange(int value);
@@ -59,4 +81,3 @@ public slots:
 };
 
 #endif // SOUNDPROCESSING_H
-
