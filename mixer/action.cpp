@@ -5,10 +5,10 @@ Action::Action() {
     isRunning = false;
     isRecording = false;
 }
-
+//---------------------------------------------------
 void Action::saveActionToFile(QString fileName)
 {
-    //zapsywanie akcji
+    //save actions to file, first save panel 1 actions
     QString name = fileName + ".acn";
     QFile file(name);
     file.open(QIODevice::WriteOnly | QIODevice::Text);
@@ -23,12 +23,12 @@ void Action::saveActionToFile(QString fileName)
     }
     file.close();
 }
-
+//---------------------------------------------------
 void Action::writePanel2(quint64 type, quint64 position, quint64 value)
 {
     if(!isRecording) return;
 
-    //czyszczę wszystkie akcje które wystąpiły w czasie późniejszym niż aktualny
+    //clear all actions which occured in time late than actual
     int i = buffer2.size()-2;
     while(i > 0 && buffer2[i] > position) {
         buffer2.remove(i-1, 3);
@@ -38,17 +38,17 @@ void Action::writePanel2(quint64 type, quint64 position, quint64 value)
     buffer2.push_back(position);
     buffer2.push_back(value);
 }
-
+//---------------------------------------------------
 void Action::writePanel1(quint64 type,quint64 position, quint64 value)
 {
     if(!isRecording) return;
 
-    //Sposob zapisu akcji:
-    //loadBuffer[i] - typ akcji
-    //loadBuffer[i+1] - pozycja utworu w ktorej ma sie wykonac akcja
-    //loadBuffer[i+2] - wartosc zmiany
+    //file structure:
+    //loadBuffer[i] - action type
+    //loadBuffer[i+1] - actual time position in which action will perform
+    //loadBuffer[i+2] - change value
 
-    //czyszczę wszystkie akcje które wystąpiły w czasie późniejszym niż aktualny
+    //clear all actions which occured in time late than actual
     int i = buffer.size()-2;
     while(i > 0 && buffer[i] > position) {
         buffer.remove(i-1, 3);
@@ -58,9 +58,10 @@ void Action::writePanel1(quint64 type,quint64 position, quint64 value)
     buffer.push_back(position);
     buffer.push_back(value);
 }
-
+//---------------------------------------------------
 void Action::loadActionFromFile(QString fileName)
 {
+    //load actions from file to buffer
     actionLoaded = false;
     loadBuffer.clear();
 
@@ -74,7 +75,7 @@ void Action::loadActionFromFile(QString fileName)
     beg2 = p2 = loadBuffer[0]+1;
     actionLoaded = true;
 }
-
+//---------------------------------------------------
 void Action::record() {
     if(isRecording) {
         isRecording = false;
@@ -85,7 +86,7 @@ void Action::record() {
         isRecording = true;
     }
 }
-
+//---------------------------------------------------
 void Action::run() {
     isRunning = !isRunning;
 }
