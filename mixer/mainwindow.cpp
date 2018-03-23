@@ -16,8 +16,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    //window fixed size
     setFixedSize(size());
 
+    //load blue and orange disc images
     QString filename = QDir::currentPath();
     filename.append("/../mixer/disc.png");
     QImage image(filename);
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QImage image2(filename);
     discImg[1] = new QGraphicsPixmapItem(QPixmap::fromImage(image2));
 
+    //set graphics scenes for discs
     for(int i = 0; i < 2; i++) {
         discImg[i]->setTransformationMode(Qt::SmoothTransformation);
         discImg[i]->setTransformOriginPoint(100, 100);
@@ -35,8 +38,10 @@ MainWindow::MainWindow(QWidget *parent) :
         disc[i]->setSceneRect(0, 0, 200, 200);
     }
 
+    //add disc images to graphics scenes
     ui->disc->setScene(disc[0]);
     ui->disc->scene()->addItem(discImg[0]);
+    //set scene background color to main window color
     ui->disc->setBackgroundBrush(QBrush(QColor(54, 54, 54), Qt::SolidPattern));
     ui->disc->show();
 
@@ -45,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->disc_2->setBackgroundBrush(QBrush(QColor(54, 54, 54), Qt::SolidPattern));
     ui->disc_2->show();
 
+    //load stylesheet for mixer
     QString path = QDir::currentPath();
     path.append("/../mixer/stylesheet.qss");
     QFile File(path);
@@ -55,15 +61,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setStyleSheet(stylesheet);
 
+    //set sound wave graphs
     setupSoundGraph(ui->customPlot);
     setupSoundGraph2(ui->customPlot_2);
 
+    //create process involved in mixing music from two panels and
+    //used to output audio
     soundProc = new SoundProcessing;
     soundProc->moveToThread(&th_soundProc);
     soundProc->timer->moveToThread(&th_soundProc);
 
+    //create class used to exporting recorded audio
     Export = new Exporting(soundProc);
 
+    //start sound processing
     connect(&th_soundProc, &QThread::finished, soundProc, &QObject::deleteLater);
     th_soundProc.start();
 
@@ -75,10 +86,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pbSound, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(playPause()));
     connect(&soundProc->panel1, SIGNAL(pause()), ui->pbSound, SLOT(click()));
     connect(ui->pbStop_1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(playStop()));
+
+    //large loop, buttons to set start/stop and enable/disable loop
     connect(ui->pbSingleLoop_1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(playLoop()));
     connect(ui->pbLoopEnable_1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(playLoopingSet()));
     connect(ui->pbLoopStart_1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(playLoopingStart()));
     connect(ui->pbLoopEnd_1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(playLoopingEnd()));
+
+    //buttons to remember music position
     connect(ui->pbFlag1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setFlag1()));
     connect(ui->pbFlag2, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setFlag2()));
     connect(ui->pbFlag3, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setFlag3()));
@@ -88,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pbUnflag3, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(unsetFlag3()));
     connect(ui->pbUnflag4, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(unsetFlag4()));
 
+    //looping
     connect(ui->pbLoop1_16, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setLoop1_16()));
     connect(ui->pbLoop1_8, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setLoop1_8()));
     connect(ui->pbLoop1_4, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setLoop1_4()));
@@ -95,17 +111,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pbLoop1, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setLoop1()));
     connect(ui->pbLoop2, SIGNAL(clicked(bool)), &soundProc->panel1, SLOT(setLoop2()));
 
+    //slider events
     connect(ui->sLow, SIGNAL(valueChanged(int)), &soundProc->panel1, SLOT(lowEQ(int)));
     connect(ui->sMedium, SIGNAL(valueChanged(int)), &soundProc->panel1, SLOT(medEQ(int)));
     connect(ui->sHigh, SIGNAL(valueChanged(int)), &soundProc->panel1, SLOT(highEQ(int)));
     connect(ui->sSpeed1,SIGNAL(valueChanged(int)),&soundProc->panel1,SLOT(speedChange(int)));
     connect(ui->sVolume1,SIGNAL(valueChanged(int)),&soundProc->panel1,SLOT(volumeChange(int)));
 
+    //disc rotation events
     connect(disc[0], SIGNAL(rotate(float)), this, SLOT(rotate(float)));
     connect(disc[0], SIGNAL(rotate(float)), &soundProc->panel1, SLOT(getDiscSpeed(float)));
     connect(disc[0], SIGNAL(start()), &soundProc->panel1, SLOT(enableDisc()));
     connect(disc[0], SIGNAL(stop()), &soundProc->panel1, SLOT(disableDisc()));
 
+    //saved action events
     connect(soundProc, SIGNAL(lowEQChange(int)), this, SLOT(lowChange(int)));
     connect(soundProc, SIGNAL(medEQChange(int)), this, SLOT(medChange(int)));
     connect(soundProc, SIGNAL(highEQChange(int)), this, SLOT(highChange(int)));
@@ -118,6 +137,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(soundProc, SIGNAL(highEQChange2(int)), this, SLOT(highChange2(int)));
     connect(soundProc, SIGNAL(crossChange(int)), this, SLOT(crossChanger(int)));
 
+    //connect mixer buttons with slots for second panel
     connect(&soundProc->panel1, SIGNAL(timeChange(QString)), ui->lTime, SLOT(setText(QString)));
     connect(ui->pbAddMusic_2, SIGNAL(clicked(bool)), this, SLOT(selectAudio2()));
     connect(ui->action_Open2, SIGNAL(triggered(bool)), this, SLOT(selectAudio2()));
@@ -125,11 +145,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pbSound_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(playPause()));
     connect(&soundProc->panel2, SIGNAL(pause()), ui->pbSound_2, SLOT(click()));
     connect(ui->pbStop_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(playStop()));
+
+    //large loop, buttons to set start/stop and enable/disable loop
     connect(ui->pbSingleLoop_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(playLoop()));
     connect(ui->pbLoopEnable_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(playLoopingSet()));
     connect(ui->pbLoopStart_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(playLoopingStart()));
     connect(ui->pbLoopEnd_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(playLoopingEnd()));
 
+    //buttons to remember music position
     connect(ui->pbFlag1_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setFlag1()));
     connect(ui->pbFlag2_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setFlag2()));
     connect(ui->pbFlag3_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setFlag3()));
@@ -139,6 +162,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pbUnflag3_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(unsetFlag3()));
     connect(ui->pbUnflag4_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(unsetFlag4()));
 
+    //looping
     connect(ui->pbLoop1_16_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setLoop1_16()));
     connect(ui->pbLoop1_8_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setLoop1_8()));
     connect(ui->pbLoop1_4_2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setLoop1_4()));
@@ -146,12 +170,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->pbLoop1__2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setLoop1()));
     connect(ui->pbLoop2__2, SIGNAL(clicked(bool)), &soundProc->panel2, SLOT(setLoop2()));
 
+    //slider events
     connect(ui->sLow_2, SIGNAL(valueChanged(int)), &soundProc->panel2, SLOT(lowEQ(int)));
     connect(ui->sMedium_2, SIGNAL(valueChanged(int)), &soundProc->panel2, SLOT(medEQ(int)));
     connect(ui->sHigh_2, SIGNAL(valueChanged(int)), &soundProc->panel2, SLOT(highEQ(int)));
     connect(ui->sSpeed2,SIGNAL(valueChanged(int)),&soundProc->panel2,SLOT(speedChange(int)));
     connect(ui->sVolume2,SIGNAL(valueChanged(int)),&soundProc->panel2,SLOT(volumeChange(int)));
 
+    //disc rotation events
     connect(disc[1], SIGNAL(rotate(float)), this, SLOT(rotate2(float)));
     connect(disc[1], SIGNAL(rotate(float)), &soundProc->panel2, SLOT(getDiscSpeed(float)));
     connect(disc[1], SIGNAL(start()), &soundProc->panel2, SLOT(enableDisc()));
@@ -159,27 +185,35 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&soundProc->panel2, SIGNAL(timeChange(QString)), ui->lTime_2, SLOT(setText(QString)));
 
+    //crossfader event
     connect(ui->sCrossfader, SIGNAL(valueChanged(int)), this, SLOT(crossFaderChange(int)));
 
+    //rec and export events
     connect(ui->pbRec, SIGNAL(clicked(bool)), soundProc, SLOT(record()));
     connect(ui->action_Export, SIGNAL(triggered(bool)), this, SLOT(onExport()));
     connect(this, SIGNAL(startExport(QString)), Export, SLOT(exportFile(QString)));
 
+    //sound wave graph events
     connect(ui->customPlot, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*,int)));
     connect(ui->customPlot_2, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked2(QCPAbstractPlottable*,int)));
 
+    //save action events
     connect(ui->pbActionSave, SIGNAL(clicked(bool)), this, SLOT(saveAction()));
     connect(this, SIGNAL(saveActionToFile(QString)), &soundProc->action, SLOT(saveActionToFile(QString)));
 
+    //load action events
     connect(ui->pbActionLoad, SIGNAL(clicked(bool)), this, SLOT(loadAction()));
     connect(this, SIGNAL(loadActionFromFile(QString)), &soundProc->action, SLOT(loadActionFromFile(QString)));
 
+    //run/record action events
     connect(ui->pbRecord, SIGNAL(clicked(bool)), &soundProc->action, SLOT(record()));
     connect(ui->pbRun, SIGNAL(clicked(bool)), &soundProc->action, SLOT(run()));
 
+    //save single action
     connect(&soundProc->panel1, SIGNAL(writeToFile(quint64,quint64,quint64)), &soundProc->action, SLOT(writePanel1(quint64,quint64,quint64)));
     connect(&soundProc->panel2, SIGNAL(writeToFile(quint64,quint64,quint64)), &soundProc->action, SLOT(writePanel2(quint64,quint64,quint64)));
 
+    //on sound wave graph mouse move
     connect(ui->customPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove(QMouseEvent*)));
     connect(ui->customPlot_2, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove2(QMouseEvent*)));
 }
@@ -275,7 +309,7 @@ void MainWindow::setupSoundGraph(QCustomPlot *customPlot)
   connect(&dataTimer, SIGNAL(timeout()), this, SLOT(bracketDataSlot()));
   dataTimer.start(100);
 }
-
+//-------------------------------------------------------
 void MainWindow::bracketDataSlot()
 {
     //if the song is loading, draw a graph
@@ -421,7 +455,7 @@ void MainWindow::bracketDataSlot()
     ui->customPlot->replot();
   }
 }
-
+//-------------------------------------------------------
 void MainWindow::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
 {
   //getting seconds from the point where the graph was clicked  
@@ -437,7 +471,7 @@ void MainWindow::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
   trackPointer->setData(x1, y2);
   ui->customPlot->replot();
 }
-
+//-------------------------------------------------------
 //dragging the sound graph
 void MainWindow::mouseMove(QMouseEvent *event)
 {
@@ -561,7 +595,7 @@ void MainWindow::setupSoundGraph2(QCustomPlot *customPlot)
 
   dataTimer2.start(100);
 }
-
+//-------------------------------------------------------
 void MainWindow::bracketDataSlot2()
 {
 
@@ -703,8 +737,7 @@ void MainWindow::bracketDataSlot2()
         ui->customPlot_2->replot();
   }
 }
-
-
+//-------------------------------------------------------
 void MainWindow::graphClicked2(QCPAbstractPlottable *plottable, int dataIndex)
 {
   double czas = plottable->interface1D()->dataMainKey(dataIndex);  //TO JEST OS X - sekundy
@@ -718,7 +751,7 @@ void MainWindow::graphClicked2(QCPAbstractPlottable *plottable, int dataIndex)
   ui->customPlot_2->replot();
 
 }
-
+//-------------------------------------------------------
 void MainWindow::mouseMove2(QMouseEvent *event)
 {
     if(event->buttons() == Qt::LeftButton)
@@ -752,7 +785,8 @@ void MainWindow::mouseMove2(QMouseEvent *event)
      ui->customPlot_2->replot();
     }
 }
-
+//-------------------------------------------------------
+//select audio for panel 1
 void MainWindow::selectAudio() {
     QString filename = QFileDialog::getOpenFileName(this,
         tr("Open file"), "/home/", tr("Music Files (*.mp3 *.wav)"), 0, QFileDialog::DontUseNativeDialog);
@@ -763,6 +797,7 @@ void MainWindow::selectAudio() {
     emit loadAudio(filename);
 }
 //------------------------------------------------------------
+//select audio for panel 2
 void MainWindow::selectAudio2() {
     QString filename = QFileDialog::getOpenFileName(this,
         tr("Open file"), "/home/", tr("Music Files (*.mp3)"), 0, QFileDialog::DontUseNativeDialog);
@@ -773,6 +808,7 @@ void MainWindow::selectAudio2() {
     emit loadAudio2(filename);
 }
 //------------------------------------------------------------
+//save cross fader change action
 void MainWindow::crossFaderChange(int value) {
     soundProc->crossFader = value;
     if(soundProc->panel1.audioReady)
@@ -780,7 +816,8 @@ void MainWindow::crossFaderChange(int value) {
     else if(soundProc->panel2.audioReady)
         emit soundProc->panel2.writeToFile(soundProc->Actions::cross, soundProc->panel2.actPos,value);
 }
-
+//-------------------------------------------------------
+//save actions to file
 void MainWindow::saveAction()
 {
      QString fileName = QFileDialog::getSaveFileName(this,
@@ -791,7 +828,8 @@ void MainWindow::saveAction()
      emit saveActionToFile(fileName);
 
 }
-
+//-------------------------------------------------------
+//load actions from file
 void MainWindow::loadAction()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
@@ -801,58 +839,60 @@ void MainWindow::loadAction()
 
     emit loadActionFromFile(fileName);
 }
-
+//functions to change sliders according to recorded acitons
 void MainWindow::lowChange(int value)
 {
     ui->sLow->setSliderPosition(value);
     ui->sLow->setValue(value);
 }
-
+//-------------------------------------------------------
 void MainWindow::medChange(int value)
 {
     ui->sMedium->setSliderPosition(value);
     ui->sMedium->setValue(value);
 }
-
+//-------------------------------------------------------
 void MainWindow::highChange(int value)
 {
     ui->sHigh->setSliderPosition(value);
     ui->sHigh->setValue(value);
 }
-
+//-------------------------------------------------------
 void MainWindow::lowChange2(int value)
 {
     ui->sLow_2->setSliderPosition(value);
     ui->sLow_2->setValue(value);
 }
-
+//-------------------------------------------------------
 void MainWindow::medChange2(int value)
 {
     ui->sMedium_2->setSliderPosition(value);
     ui->sMedium_2->setValue(value);
 }
-
+//-------------------------------------------------------
 void MainWindow::highChange2(int value)
 {
     ui->sHigh_2->setSliderPosition(value);
     ui->sHigh_2->setValue(value);
 }
-
+//-------------------------------------------------------
 void MainWindow::crossChanger(int value)
 {
     ui->sCrossfader->setSliderPosition(value);
     ui->sCrossfader->setValue(value);
 }
 //------------------------------------------------------------
+//rotate disc 1
 void MainWindow::rotate(float angle) {
     discImg[0]->setRotation(angle);
 }
 //------------------------------------------------------------
+//rotate disc 2
 void MainWindow::rotate2(float angle) {
     discImg[1]->setRotation(angle);
 }
 //------------------------------------------------------------
-
+//set location and export recorded music file
 void MainWindow::onExport() {
 
     //choosing the location of the saved audio file
@@ -868,7 +908,6 @@ void MainWindow::onExport() {
 
 }
 //------------------------------------------------------------
-
 MainWindow::~MainWindow()
 {
     th_soundProc.quit();
