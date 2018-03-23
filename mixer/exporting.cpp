@@ -5,20 +5,21 @@ Exporting::Exporting(SoundProcessing* soundprocessing, QObject *parent) : QObjec
 {
  this->soundProc = soundprocessing;
 }
+//---------------------------------------------------
 void Exporting::exportFile(QString filename){
 
     QFile* file= new QFile(filename);
 
     file->open(QIODevice::WriteOnly);
-    //wpisanie headera formatu WAVE do pliku
+    //write WAVE header format to file
     writeWavHeader(file);
-    //wpisanie danych z dzwiekiem
+    //write recorded data
     file->write(soundProc->output1);
     closeWavHeader(file);
 
     emit exportReady();
 }
-
+//---------------------------------------------------
 void Exporting::writeWavHeader( QFile * file )
 {
     QDataStream out(file);
@@ -45,7 +46,7 @@ void Exporting::writeWavHeader( QFile * file )
     out << quint32(0); // Placeholder for the data chunk size (filled by close())
 
 }
-
+//---------------------------------------------------
 void Exporting::closeWavHeader( QFile * file) {
     // Fill the header size placeholders
     quint32 fileSize = file->size();
